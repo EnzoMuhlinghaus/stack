@@ -55,33 +55,36 @@ missing or pre-failing checks in the brief.
 
 ## 2. Start the reviewer
 
-Run the reviewer as a supervised Orca worker in the current worktree. Follow
-the `orchestration` skill (`orca skills get orchestration`) for the Run, the
-wait, and cleanup. Save the diff to a file outside the worktree first
-(`git diff <base> [-- <paths>] > <tmp>/review.diff`, plus untracked files),
-because the reviewer has no shell. For a pi model, start its terminal with
-read-only tools:
+Save the diff to a file outside the worktree
+(`git diff <base> [-- <paths>] > <tmp>/review.diff`, plus untracked files):
+the reviewer gets read-only tools and no shell, so it cannot change your files.
+
+For a pi model, run each round as one background command (in Claude Code,
+`run_in_background`), so you wake when it finishes and spend nothing while it
+runs. Its output is the review. A fixed session id keeps the reviewer's
+context from one round to the next:
 
 ```bash
-orca terminal create --worktree current --title loop-review \
-  --command "pi --model <provider/id> --thinking high --tools read,grep,find,ls"
-orca orchestration worker-start --terminal <handle> --worktree current \
-  --task-title "loop-review round 1" --spec "<round 1 brief>"
-orca orchestration check --wait --types worker_done,escalation,question --timeout-ms 900000
+pi -p --model <provider/id> --thinking high --tools read,grep,find,ls \
+  --session-id loop-review-<short-sha>-<timestamp> "<brief>" </dev/null
 ```
+
+A session id takes only letters, digits, `-`, `_`, and `.`, so never put a
+branch name with `/` in it. Close stdin (`</dev/null`): a background `pi -p`
+can otherwise end without output.
+
+Do not run the reviewer as a supervised Orca worker: Orca workers report with
+the `orca` CLI, which a reviewer without a shell cannot run, so the wait never
+ends.
 
 For a Claude reviewer, use a Claude Code subagent with that model instead.
 
-If Orca is not running, run one background command:
-`pi -p --model <provider/id> --thinking high --tools read,grep,find,ls "<brief>"`.
-
 Do not edit scoped files while review runs. Wait for the result. Do not
-poll or start a second reviewer. After you process a result, pass
-`--ack <delivery_id>` on the next `check`, or the same result comes back. Timeout, error, or no reply is not
+poll or start a second reviewer. Timeout, error, or no reply is not
 approval. After each round, confirm with `git status --short` that the
 reviewer changed nothing.
 
-Round 1 brief (the worker gets no history):
+Round 1 brief (the reviewer gets no history):
 
 ```
 Review only. Do not edit, commit, push, comment on PRs, or start subagents.
@@ -115,9 +118,8 @@ review grew the diff, cut first. Do not agree just to end the loop.
 ## 4. Next round
 
 Start one only if budget remains and a blocker or should is open, behavior code
-changed, or approval does not cover the current behavior diff. Reuse the same
-reviewer terminal with a new `worker-start --terminal <handle>`, so it keeps its
-context. Send the ledger (`fixed:` / `disagree:` / `declined:` + evidence), the
+changed, or approval does not cover the current behavior diff. Run the next
+`pi -p` with the same `--session-id`, so the reviewer keeps its context. Send the ledger (`fixed:` / `disagree:` / `declined:` + evidence), the
 same base diff, and the change since last round, each saved to a file. Tell the reviewer: open ids and
 changed code only. Mark each old id `resolved` or `still open: <reason>`.
 
@@ -127,8 +129,6 @@ Agreed: APPROVE on the current behavior diff, no blocker or should open,
 no concern of your own. Stuck: an item stays disputed after two replies,
 or budget ends. Show both sides in 2-3 lines each. The user decides.
 Budget end is not approval.
-
-Release the reviewer with `worker-release` once the loop ends.
 
 Do not push during the loop. Push after agreement only if the user asked
 to push, ship, or update the PR. If you push to a PR, add above the model
