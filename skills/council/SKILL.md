@@ -12,13 +12,10 @@ opencode-go/kimi-k3.1-pro`. Use those, at high reasoning effort. If none are
 named, ask. If a named member is unavailable, report it instead of
 substituting.
 
-Run each pi member as a supervised Orca worker in the current worktree, all in
-parallel, following the `orchestration` skill. Review is read-only, so they
-share the worktree. Start each terminal with
-`pi --model <provider/id> --thinking high --tools read,grep,find,ls`, and
-point each member at a saved diff file as in `loop-review`. Then
-`worker-start --terminal <handle> --worktree current`. Run a Claude member as a
-Claude Code subagent with that model.
+Run each pi member the way `loop-review` runs its reviewer: one background
+`pi -p` per member, all in parallel, with read-only tools, a saved diff file,
+and its own `--session-id`. Run a Claude member as a Claude Code subagent with
+that model.
 
 Give each delegate the request and relevant context. For review or feedback,
 keep their work read-only. Collect their responses and summarize the useful
@@ -26,8 +23,8 @@ findings, disagreements, and recommended next steps.
 
 For a code review, ask each delegate for a score out of 10.
 Count each full review pass as one round.
-A fresh review after fixes starts a new round. Reuse each member's terminal for
-its next round, and release every worker when the council ends.
+A fresh review after fixes starts a new round. Reuse each member's session id for
+its next round.
 
 If the work ends in a pull request, put the results in the PR description.
 Put this section before the model and harness line at the end:

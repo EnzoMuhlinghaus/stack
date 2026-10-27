@@ -45,8 +45,7 @@ task specs instead. If a worker needs a skill, load it for that launch with
 
 - An authenticated [GitHub CLI](https://cli.github.com) (`gh`).
 - `python3` for `babysit-pr`'s `pr-wait` script.
-- `orca` for `loop-review` and `council` workers, and `pi` with access to the
-  reviewer models. `loop-review` falls back to a background `pi -p` without Orca.
+- `pi` with access to the reviewer models, for `loop-review` and `council`.
 
 ## Make them yours
 

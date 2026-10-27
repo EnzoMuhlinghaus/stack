@@ -47,6 +47,10 @@ one appears.
 1. **Finish the change.** Complete the goal from the user's request with the
    smallest change that works. Fix the case that happened, not every case
    that could. If you are on the default branch, create a branch first.
+   Plan the change, then delegate per the user's instructions: bounded edits
+   and sweeps to cheap workers, visual checks to Claude workers. Keep
+   decisions, review, and final verification yourself, and verify every
+   worker's diff before you build on it.
 2. **Prove it.** Get proof for every change you made. See "Proof".
 3. **Get feedback.** Use the `loop-review` skill to verify changes.
 4. **File the PR** with the `file-pr` skill. Rebase onto the latest default
