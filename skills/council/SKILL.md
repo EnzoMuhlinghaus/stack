@@ -7,7 +7,7 @@ description: Trigger this if the user says 'council'.
 
 Bring in several delegates to help with the user's request, usually for review
 or feedback. The user's instructions (`CLAUDE.md`, `AGENTS.md`) name the
-council members, for example `Council: claude-opus, opencode-go/gpt-6-luna,
+council members, for example `Council: claude-opus, opencode-go/glm-5.3,
 opencode-go/kimi-k3.1-pro`. Use those, at high reasoning effort. If none are
 named, ask. If a named member is unavailable, report it instead of
 substituting.
@@ -40,7 +40,7 @@ Rounds: 2
 | Delegate | Round 1 | Round 2 |
 | --- | --- | --- |
 | Claude Opus | 7/10 | 9/10 |
-| GPT Luna | 8/10 | 10/10 |
+| GLM | 8/10 | 10/10 |
 | Kimi | 7/10 | 9/10 |
 ```
 

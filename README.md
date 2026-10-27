@@ -55,7 +55,7 @@ skills without losing them:
 
 ```markdown
 Loop reviewer: opencode-go/gpt-6-luna
-Council: claude-opus, opencode-go/gpt-6-luna, opencode-go/kimi-k3.1-pro
+Council: claude-opus, opencode-go/glm-5.3, opencode-go/kimi-k3.1-pro
 ```
 
 Each repo's instructions name its review bots, which `babysit-pr` passes to
