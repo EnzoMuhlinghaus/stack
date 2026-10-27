@@ -5,6 +5,11 @@ description: File a concise pull request. Use when the user asks to file, open, 
 
 # File PR
 
+Repository rules come first. If the repo's `AGENTS.md`, `CLAUDE.md`, or PR
+template sets a PR format (linked issues such as `Closes #N`, required
+sections, screenshots), follow it exactly. Use the advice below only for what
+the repo leaves open, never as a competing template.
+
 Before filing, check whether a PR for this branch already exists. Review the
 diff locally against the base branch (usually `origin/main`) to make sure its
 contents match the goal.
@@ -32,6 +37,13 @@ BAD
 GOOD
 
 > ✅ My "new worktree" default was ignored when starting new threads on existing worktrees. Super unintuitive. Now your preferences always apply.
+
+Embed screenshots, do not link them. In a private repo, use
+`![alt](https://github.com/<owner>/<repo>/blob/<sha>/<path>?raw=true)`. For
+frontend changes, include each changed state in Light and Dark when the app
+has both.
+
+Never use the em-dash character in the title or description.
 
 End the description with the public model name and harness that made the
 changes, for example `Created with <model> in <harness>.` Include subagent

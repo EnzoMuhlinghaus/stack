@@ -18,8 +18,9 @@ permission does not apply. The overrides below take precedence.
 
 ## No merging
 
-You may commit, push, rebase, fix conflicts, and use `--force-with-lease` on
-this task's branch. Never merge, enable auto-merge, enter a merge queue, push
+You may commit, push, and fix conflicts on this task's branch. Never
+force-push: to update a branch, follow `babysit-pr` and open a replacement PR.
+Never merge, enable auto-merge, enter a merge queue, push
 to the default branch, bypass branch protection, or delegate those actions.
 
 Disable existing auto-merge and remove the PR from any merge queue before
@@ -42,6 +43,5 @@ without the user. If someone else merged it, report that instead.
 - **Blocked:** explain what prevents readiness, what you tried, and what is
   needed. Follow full-send's rules for asking the user.
 
-In T3 Code, call `unwatch_pull_request` before the handoff or a question.
 Report the PR link, final head, verdict, proof, reviewer outcome, and remaining
 risks. State whether the PR is still open and unmerged.
