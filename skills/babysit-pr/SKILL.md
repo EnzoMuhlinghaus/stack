@@ -12,7 +12,8 @@ right.
 
 The repo's instructions (`AGENTS.md`, `CLAUDE.md`) name its review bots and
 say which ones gate readiness. Read them before you watch. If they name none,
-treat every bot as advisory.
+pass every review bot you see on the PR as `--advisory-bot`: `pr-wait` cannot
+recognize an unnamed bot, so its check would gate like CI.
 
 ## Waiting
 

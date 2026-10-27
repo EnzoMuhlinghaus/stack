@@ -16,8 +16,10 @@ assume full autonomy. If they did, everything below applies.
 The user grants you permission to:
 
 - Merge the PR once the merge gate passes.
-- Force-push the PR's own branch with `--force-with-lease` after a rebase.
 - Use the test methods that Proof needs, without asking first.
+
+It does not grant a force-push. To update a branch, follow `babysit-pr`:
+rebase onto a new branch and open a replacement PR.
 
 ## Testing permission
 
@@ -46,10 +48,10 @@ one appears.
    smallest change that works. Fix the case that happened, not every case
    that could. If you are on the default branch, create a branch first.
 2. **Prove it.** Get proof for every change you made. See "Proof".
-3. **Get feedback.** Use the `sol-loop` skill to verify changes.
+3. **Get feedback.** Use the `loop-review` skill to verify changes.
 4. **File the PR** with the `file-pr` skill. Rebase onto the latest default
-   branch first. Add one short line to the description that says how you proved
-   the change.
+   branch first. Put how you proved the change where the repo's PR format
+   asks for it, or in one short line when it has no such section.
 5. **Babysit the PR** with the `babysit-pr` skill. Fix real findings and CI
    failures. Get proof for each fix before you push it.
 6. **Merge** when the merge gate passes.
@@ -58,9 +60,7 @@ one appears.
 
 Stay active from step 1 to step 7. If you end your turn while checks or bots are
 pending, the work stops, because nobody will prompt you again. Wait with the
-watcher from `babysit-pr`, so something wakes you when the PR changes. In T3
-Code that is `watch_pull_request`. If you stop before the merge, call
-`unwatch_pull_request` first.
+watcher from `babysit-pr`, so something wakes you when the PR changes.
 
 ## Proof
 
@@ -75,6 +75,9 @@ reproduction, a screenshot. Use the most direct proof the change allows:
 - For UI and runtime behavior, run the app and look at the change. Green mocked
   tests do not prove that the user experience works. Attach screenshots to the
   PR when they help and you have a way to upload them.
+
+Never present a check you did not observe as verified. In checklists, tick
+only the boxes you observed.
 
 When you cannot find a way to prove a change, you do not have full confidence.
 Ask the user.
@@ -101,17 +104,21 @@ review" if you have high confidence in your changes.
 
 A question in a normal message goes unseen, and the thread looks done. To ask
 the user something, use the harness's question tool so the thread shows that
-it is waiting: `AskUserQuestion` in Claude Code, `request_user_input` in Codex,
-or the question tool your harness has. Put all the context in the question:
+it is waiting: `AskUserQuestion` in Claude Code,
+or the question tool your harness has. Explain each option's mechanics and
+consequence in plain terms, not just a label. Put all the context in the question:
 the PR link, what blocks you, and the options with your recommendation first.
 
 Ask only when you cannot continue alone:
 
 - You cannot prove the change.
 - The merge gate cannot pass, and you cannot fix that yourself.
-- The next step is outside the grant above: deleting data, touching production,
-  changing things outside the repo, closing a PR, or force-pushing any other
-  branch.
+- The next step is outside the grant above: deleting data, touching production
+  or anything that reaches users (a deploy, an over-the-air update), changing
+  things outside the repo, closing a PR, or force-pushing.
+- The next step changes an external system (a database, error tracking,
+  analytics, hosting). Say what you will change and why, and prefer a committed,
+  reversible change such as a migration.
 - The goal is ambiguous in a way that changes the result.
 - Another PR makes this one obsolete.
 

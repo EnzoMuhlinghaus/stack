@@ -16,10 +16,10 @@ PR still belongs in the product.
   branch, and any other branch related to your work before starting.
 - Treat existing worktree changes as user-owned. Use a disposable worktree when
   the active worktree is dirty or is being used for other work.
-- Modernizing authorizes rebasing and updating the PR branch. It does not
-  authorize merging, closing, changing the base branch, or expanding scope.
-- Never use an unqualified force push. Update a rebased branch with
-  `--force-with-lease` against the head SHA observed before the rebase.
+- Modernizing authorizes rebasing onto a new branch and opening a replacement
+  PR. It does not authorize merging, closing the old PR, changing the base
+  branch, or expanding scope.
+- Never force-push. The original branch and PR stay as they are.
 - Do not post a PR comment unless the user asked for one. Use the
   `leaving-pr-comments` skill for every comment posted on the user's behalf.
 
@@ -58,7 +58,7 @@ Do not describe a PR as current merely because Git reports no conflicts.
 Use one of these recommendations:
 
 - **MODERNIZE**: the goal is still useful and the implementation remains the
-  right shape. Rebase, resolve conflicts, test, and update the branch.
+  right shape. Rebase, resolve conflicts, test, and open a replacement PR.
 - **REWORK**: the goal is still useful, but a mechanical rebase would preserve
   the wrong implementation. Explain the smallest credible rewrite and stop
   before pushing unless the user also asked for that rework.
@@ -73,7 +73,8 @@ not a reason to keep a PR alive.
 
 For a `MODERNIZE` disposition:
 
-1. Create a safe local branch or disposable worktree at the recorded PR head.
+1. Create a new branch (for example `<old-branch>-modernized`) in a
+   disposable worktree at the recorded PR head.
 2. Rebase its commits onto the freshly fetched base branch.
 3. Resolve each conflict according to the PR's current intent and the base
    branch's newer invariants. If a conflict reveals a product or architecture
@@ -83,8 +84,9 @@ For a `MODERNIZE` disposition:
    and no already-landed behavior was reintroduced.
 5. Run the repository's focused checks for the touched area. Distinguish real
    failures from pre-existing or infrastructure failures.
-6. Push with `--force-with-lease` tied to the previously observed remote head.
-   If the lease fails, fetch and reassess rather than overwriting new work.
+6. Push the new branch and open a replacement PR with `file-pr`. Link the
+   original PR, keep its authors' credit, and carry over open review findings.
+   Ask before closing the original PR.
 
 Do not merge the PR.
 
@@ -94,7 +96,7 @@ Lead with `MODERNIZE`, `REWORK`, or `CLOSE` and the reason. Then summarize:
 
 - meaningful changes on the base branch;
 - conceptual conflicts or confirmation that none were found;
-- the rebase and push result, if performed;
+- the rebase result and the replacement PR, if opened;
 - checks run and their results;
 - the remaining decision or work, with a link to the PR.
 
