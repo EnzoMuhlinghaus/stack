@@ -66,8 +66,12 @@ context from one round to the next:
 
 ```bash
 pi -p --model <provider/id> --thinking high --tools read,grep,find,ls \
-  --session-id loop-review-<branch>-<timestamp> "<brief>"
+  --session-id loop-review-<short-sha>-<timestamp> "<brief>" </dev/null
 ```
+
+A session id takes only letters, digits, `-`, `_`, and `.`, so never put a
+branch name with `/` in it. Close stdin (`</dev/null`): a background `pi -p`
+can otherwise end without output.
 
 Do not run the reviewer as a supervised Orca worker: Orca workers report with
 the `orca` CLI, which a reviewer without a shell cannot run, so the wait never
