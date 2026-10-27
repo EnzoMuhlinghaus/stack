@@ -2,6 +2,7 @@
 """pr-wait: watch one GitHub pull request and print one line per real event.
 
   pr-wait <pr> [--repo owner/name] [--until green|ready|any-change] [--interval 20]
+          [--gating-bot NAME]... [--advisory-bot NAME]...
 
 <pr> is a PR number or PR URL. Without --repo, the repo comes from the URL or
 from the current checkout. Stdout carries only events, one line each, so a
@@ -11,8 +12,8 @@ Progress and errors that do not end the run go to stderr.
 --until
   green       required checks passed on the current head (every CI check when
               the base branch requires none)
-  ready      green, Greptile or Macroscope reviewed the current head, and no
-              review thread is unresolved (default)
+  ready       green, a gating bot reviewed the current head (when any is
+              named), and no review thread is unresolved (default)
   any-change  stop after the first poll that prints an event
 
 Exit codes
@@ -27,14 +28,20 @@ Events
   - all checks finished on the head (one summary line)
   - a new comment, review, thread, or thread reply from someone other than the
     PR author or the gh user
-  - Greptile, Macroscope, or CodeRabbit finished on the head, or a Greptile or
-    Macroscope summary changed after that
+  - a named review bot finished on the head, or a gating bot's summary changed
+    after that
   - the base branch moved and the new commits touch files in this PR
   - merge state became BEHIND or DIRTY
   - the PR merged or closed
 
-CodeRabbit is advisory: pr-wait reports it but never waits for it. Comment
-edits are never events, and top-level comments from CI and deploy bots
+Review bots
+  The repo's instructions name its review bots. Pass each one with
+  --gating-bot (ready waits until one of them reviewed the head) or
+  --advisory-bot (reported, never waited on). A name matches any login or check
+  name that contains it, case-insensitively. With no gating bot, ready means
+  green, no unresolved thread, and not BEHIND.
+
+Comment edits are never events, and top-level comments from CI and deploy bots
 (github-actions, Vercel) are skipped, because checks already carry that news.
 
 State lives in ~/.local/state/pr-wait/. A lock makes a second watcher for the
@@ -59,8 +66,9 @@ from collections.abc import Sequence
 from pathlib import Path
 from typing import Any, NoReturn
 
-GATING_BOTS = ("greptile", "macroscope")
-ADVISORY_BOTS = ("coderabbit",)
+# Set from --gating-bot and --advisory-bot.
+GATING_BOTS: tuple[str, ...] = ()
+ADVISORY_BOTS: tuple[str, ...] = ()
 # CI and deploy bots report through checks. Their PR comments are status reports.
 STATUS_BOTS = ("github-actions", "vercel", "netlify", "railway", "cloudflare")
 STATE_DIR = Path.home() / ".local" / "state" / "pr-wait"
@@ -168,6 +176,15 @@ def verdict(body: str) -> str:
     for line in plain(body).splitlines():
         if re.search(r"verdict|confidence score", line, re.IGNORECASE):
             return snippet(line.replace("*", ""), 80)
+    return ""
+
+
+def headline(body: str) -> str:
+    """The first line of a bot review, where bots put their outcome."""
+    for line in plain(body).splitlines():
+        line = line.strip().lstrip("#").replace("*", "").strip()
+        if line:
+            return snippet(line, 80)
     return ""
 
 
@@ -438,8 +455,10 @@ class Watcher:
                 if bot in GATING_BOTS:
                     reviewed.append(bot)
                 failed = [name for name, c in own_checks.items() if c["bucket"] in FAILED]
+                head_reviews = [r for r in own_reviews if (r.get("commit") or {}).get("oid") == head and r["body"].strip()]
                 detail = "; ".join(filter(None, [
-                    next((v for v in map(verdict, (s["body"] for s in summaries)) if v), ""),
+                    next((v for v in map(verdict, (s["body"] for s in summaries)) if v), "")
+                    or (headline(head_reviews[-1]["body"]) if head_reviews else ""),
                     f"failed: {', '.join(failed)}" if failed else "",
                 ]))
                 tag = " (advisory, not waited on)" if bot in ADVISORY_BOTS else ""
@@ -486,7 +505,7 @@ class Watcher:
             if self.required
             else "",
             ", ".join(bot_status[b] for b in GATING_BOTS + ADVISORY_BOTS if b in bot_status)
-            or "no Greptile or Macroscope yet",
+            or ("no gating bot review yet" if GATING_BOTS else ""),
             f"{len(unresolved)} unresolved threads",
             f"merge state {merge_state}",
         ]
@@ -503,8 +522,8 @@ class Watcher:
             if green and self.until == "green":
                 self.reported.add(checks_key)
                 self.finish(0, [f"green on {short}: {summary}{self.behind(base, base_oid, head)}"])
-            # ready waits for Greptile or Macroscope, never for CodeRabbit.
-            if green and reviewed:
+            # ready waits for a gating bot when one is named, never for advisory bots.
+            if green and (reviewed or not GATING_BOTS):
                 if unresolved:
                     self.finish(1, [f"blocked by {len(unresolved)} unresolved threads on {short}: {' '.join(unresolved)}"])
                 if merge_state == "BEHIND":
@@ -543,7 +562,14 @@ def main() -> None:
     parser.add_argument("--repo", help="owner/name (default: from the URL or the current checkout)")
     parser.add_argument("--until", choices=("green", "ready", "any-change"), default="ready")
     parser.add_argument("--interval", type=int, default=20, help="seconds between polls (default 20, min 5)")
+    parser.add_argument("--gating-bot", action="append", default=[], metavar="NAME",
+                        help="review bot that ready waits for (repeatable)")
+    parser.add_argument("--advisory-bot", action="append", default=[], metavar="NAME",
+                        help="review bot that is reported but never waited for (repeatable)")
     args = parser.parse_args()
+    global GATING_BOTS, ADVISORY_BOTS
+    GATING_BOTS = tuple(name.lower() for name in args.gating_bot)
+    ADVISORY_BOTS = tuple(name.lower() for name in args.advisory_bot)
     repo, pr = parse_target(args.pr, args.repo)
     _lock = lock(repo, pr)
     Watcher(repo, pr, args.until, max(args.interval, 5)).run()

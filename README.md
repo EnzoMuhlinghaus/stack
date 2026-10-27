@@ -1,9 +1,10 @@
-# tstack
+# stack
 
-The agent skills I use every day, cleaned up so anyone can use them. They work
-in Claude Code and Codex. Some use [T3 Code](https://github.com/pingdotgg/t3code)
-features when they are available and fall back to native tools when they are
-not.
+Agent skills for Claude Code as orchestrator, [Orca](https://github.com/stablyai/orca)
+for worktrees and workers, and [pi](https://github.com/earendil-works/pi) as a
+cheap worker. Forked from [t3dotgg/tstack](https://github.com/t3dotgg/tstack),
+which targets Claude Code, Codex, and T3 Code. The adaptation is in progress:
+skills not yet adapted still mention T3 Code and GPT Sol.
 
 ## Skills
 
@@ -29,9 +30,8 @@ Some skills call others. Install the ones they need too:
 ## Install
 
 ```bash
-git clone https://github.com/t3dotgg/tstack
-cp -R tstack/skills/* ~/.claude/skills/   # Claude Code
-cp -R tstack/skills/* ~/.codex/skills/    # Codex
+git clone https://github.com/EnzoMuhlinghaus/stack
+ln -s "$PWD"/stack/skills/* ~/.claude/skills/
 ```
 
 ## Requirements
@@ -50,4 +50,5 @@ skills without losing them.
 
 ## License
 
-[MIT](LICENSE)
+[MIT](LICENSE). Original work by Theo Browne in
+[t3dotgg/tstack](https://github.com/t3dotgg/tstack).
