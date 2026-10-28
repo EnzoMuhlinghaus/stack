@@ -257,7 +257,9 @@ def required_checks(repo: str, base: str) -> set[str]:
         try:
             names.update(gh_lines(["api", path, "--jq", jq]))
         except GhError as error:
-            if "HTTP 404" not in str(error):  # 404 means no protection, which is normal
+            text = str(error)
+            # 404, or 403 on a free private repo, means no protection: normal, so stay quiet.
+            if "HTTP 404" not in text and "Upgrade to GitHub Pro" not in text:
                 log(f"could not read required checks from {path}: {error}")
     return names
 
