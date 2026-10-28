@@ -43,6 +43,21 @@ Embed screenshots, do not link them. In a private repo, use
 frontend changes, include each changed state in Light and Dark when the app
 has both.
 
+Lay screenshots out as Markdown tables for side-by-side review: one row per
+state (bold row label), one column per compared variant (Light | Dark, or
+Before | After), and one table per viewport. In image cells, use
+`<img src="https://github.com/<owner>/<repo>/blob/<sha>/<path>?raw=true" width="<n>" alt="<state>, <variant>">`
+so each pair renders at the same size. Use one width per table: about 240-260 for phone captures,
+400-460 for desktop. Put an en dash (–) in an empty cell. Put short context
+sentences under the table, not between images. For example:
+
+```markdown
+| State | Light | Dark |
+| --- | --- | --- |
+| **Home** | <img src="..." width="250" alt="Home, light"> | <img src="..." width="250" alt="Home, dark"> |
+| **Empty list** | <img src="..." width="250" alt="Empty list, light"> | – |
+```
+
 Never use the em-dash character in the title or description.
 
 End the description with the public model name and harness that made the
