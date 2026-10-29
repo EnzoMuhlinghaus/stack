@@ -12,6 +12,7 @@ Codex, and T3 Code.
 | Skill | Say | What it does |
 |---|---|---|
 | `full-send` | "full send" | Takes a change to a merged PR with nobody watching: proves it, reviews it, files it, babysits it, merges it. |
+| `full-send-fast` | "full send fast" | Same as `full-send`, but skips loop review and Sentinelle, and takes CI as proof for non-UI changes. |
 | `full-stop` | "full stop" | Same as `full-send`, but stops when the PR is ready for you to merge. |
 | `council` | "council" | Gets review from the models you name, in parallel, and loops until they agree. |
 | `loop-review` | "loop review" | Reviews a change with one model from another family, in a loop until both agents agree. |
@@ -24,11 +25,11 @@ Codex, and T3 Code.
 Some skills call others. Install the ones they need too:
 
 - `full-send` uses `loop-review`, `file-pr`, and `babysit-pr`.
-- `full-stop` uses `full-send`.
+- `full-send-fast` and `full-stop` use `full-send`.
 - `takeover` uses `modernize`, `file-pr`, `babysit-pr`, and `leaving-pr-comments`.
 - `file-pr`, `babysit-pr`, and `modernize` use `leaving-pr-comments`.
 
-No skill force-pushes. Only `full-send` merges.
+No skill force-pushes. Only `full-send` and `full-send-fast` merge.
 
 ## Install
 
