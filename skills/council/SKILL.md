@@ -12,10 +12,17 @@ opencode-go/kimi-k3.1-pro`. Use those, at high reasoning effort. If none are
 named, ask. If a named member is unavailable, report it instead of
 substituting.
 
-Run each pi member the way `loop-review` runs its reviewer: one background
-`pi -p` per member, all in parallel, with read-only tools, a saved diff file,
-and its own `--session-id`. Run a Claude member as a Claude Code subagent with
-that model.
+Run each member the way `loop-review` runs its reviewer: one supervised Orca
+worker per member (`orca orchestration worker-start --agent <agent> --model
+<model>`), all started in parallel on the same worktree, each with a read-only
+brief and a saved diff file. A bare `<provider/id>` names a pi model, and a
+Claude member is `--agent claude` with a model the Claude CLI accepts (an
+alias such as `opus` for `claude-opus`, or a full model id). Pass `--effort high` where
+the agent takes one (pi, Claude), and leave it out when the model id already
+carries the level (`gemini-4-neon-high`). Never call an agent CLI yourself.
+
+Orca wakes you once per member. Keep ending your turn until every member has
+reported, then summarize; do not edit the worktree while any is still reading.
 
 Give each delegate the request and relevant context. For review or feedback,
 keep their work read-only. Collect their responses and summarize the useful
@@ -23,8 +30,10 @@ findings, disagreements, and recommended next steps.
 
 For a code review, ask each delegate for a score out of 10.
 Count each full review pass as one round.
-A fresh review after fixes starts a new round. Reuse each member's session id for
-its next round.
+A fresh review after fixes starts a new round, with a new worker per member
+whose brief repeats the read-only brief, the reply format and the score
+request, and adds the updated diff plus your fixes or replies to that member's
+previous review.
 
 If the work ends in a pull request, put the results in the PR description.
 Put this section before the model and harness line at the end:
