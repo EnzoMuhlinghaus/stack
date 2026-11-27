@@ -56,33 +56,30 @@ missing or pre-failing checks in the brief.
 ## 2. Start the reviewer
 
 Save the diff to a file outside the worktree
-(`git diff <base> [-- <paths>] > <tmp>/review.diff`, plus untracked files):
-the reviewer gets read-only tools and no shell, so it cannot change your files.
+(`git diff <base> [-- <paths>] > <tmp>/review.diff`, plus untracked files).
 
-For a pi model, run each round as one background command (in Claude Code,
-`run_in_background`), so you wake when it finishes and spend nothing while it
-runs. Its output is the review. A fixed session id keeps the reviewer's
-context from one round to the next:
+Run every round as one supervised Orca worker, never by calling an agent CLI
+yourself. The user's instructions name the reviewer as an Orca agent and model,
+for example `Loop reviewer: --agent antigravity --model gemini-4-neon-high`.
+A bare `<provider/id>` names a pi model (`--agent pi --model <provider/id>
+--effort high`). Put the brief in a spec file and start the worker in the same
+worktree, since a read-only worker can share it:
 
 ```bash
-pi -p --model <provider/id> --thinking high --tools read,grep,find,ls \
-  --session-id loop-review-<short-sha>-<timestamp> "<brief>" </dev/null
+orca orchestration worker-start --spec-file <tmp>/review-brief.md \
+  --worktree current --agent <agent> --model <model> [--effort <level>] \
+  --task-title "Loop review round <n>"
 ```
 
-A session id takes only letters, digits, `-`, `_`, and `.`, so never put a
-branch name with `/` in it. Close stdin (`</dev/null`): a background `pi -p`
-can otherwise end without output.
+End your turn and let Orca wake you with the worker's `worker_done`: its
+report is the review. Do not edit scoped files while review runs, poll, or
+start a second reviewer. Timeout, error, or no reply is not approval.
 
-Do not run the reviewer as a supervised Orca worker: Orca workers report with
-the `orca` CLI, which a reviewer without a shell cannot run, so the wait never
-ends.
-
-For a Claude reviewer, use a Claude Code subagent with that model instead.
-
-Do not edit scoped files while review runs. Wait for the result. Do not
-poll or start a second reviewer. Timeout, error, or no reply is not
-approval. After each round, confirm with `git status --short` that the
-reviewer changed nothing.
+The worker has a shell, so the brief forbids edits and you check that it made
+none: save `git rev-parse HEAD` and `git status --short` with the diff, and
+after each round check that both are unchanged and that the same diff command
+still produces `<tmp>/review.diff`. `git status --short` alone cannot show an
+edit to a file that was already modified.
 
 Round 1 brief (the reviewer gets no history):
 
@@ -95,10 +92,13 @@ Skip style unless it hides a bug. Hold to the smallest change. Flag code,
 tests, or guards the intent does not need. Other paths, rare cases, small
 perf, extra compat: nits.
 blocker = intended case wrong. should = real bug callers will hit, in intent. nit = rest.
-Reply:
+Report the whole review in worker_done, not in chat and not as a short
+summary (use --body-file with a file outside the repo), with outcome
+succeeded even when the verdict is CHANGES:
 VERDICT: APPROVE or CHANGES
 S1 [blocker|should|nit] <file>:<line> <claim>. Fix: <suggestion> (stable ids)
-Time box: 15 minutes. If you cannot read the diff, reply BLOCKED and why.
+Time box: 15 minutes. If you cannot read the diff, send worker_done with
+outcome failed and BLOCKED: <reason>.
 ```
 
 ## 3. Answer findings
@@ -119,7 +119,10 @@ review grew the diff, cut first. Do not agree just to end the loop.
 
 Start one only if budget remains and a blocker or should is open, behavior code
 changed, or approval does not cover the current behavior diff. Run the next
-`pi -p` with the same `--session-id`, so the reviewer keeps its context. Send the ledger (`fixed:` / `disagree:` / `declined:` + evidence), the
+round as a new worker with the same agent and model. It starts without
+history, so its brief repeats the round 1 brief (the read-only line, the
+context line, the worker_done reply format and the time box) and adds the
+previous review. Send the ledger (`fixed:` / `disagree:` / `declined:` + evidence), the
 same base diff, and the change since last round, each saved to a file. Tell the reviewer: open ids and
 changed code only. Mark each old id `resolved` or `still open: <reason>`.
 
