@@ -34,8 +34,20 @@ No skill force-pushes. Only `full-send` and `full-send-fast` merge.
 ## Install
 
 ```bash
-git clone https://github.com/EnzoMuhlinghaus/stack
-ln -s "$PWD"/stack/skills/* ~/.claude/skills/
+git clone https://github.com/EnzoMuhlinghaus/stack ~/dev/stack
+~/dev/stack/install.sh
+```
+
+`install.sh` links each skill into `~/.agents/skills/`, which Codex, the
+`skills` CLI and Orca read, and links `~/.claude/skills/<name>` to that
+entry for Claude Code. Each machine keeps one copy of the skills, its
+checkout. Running it again is safe: it replaces only its own links, never a
+real file or folder, and removes links to skills that no longer exist.
+
+To pick up updates on their own, pull on a schedule, for example with cron:
+
+```cron
+*/15 * * * * git -C ~/dev/stack pull --ff-only -q && ~/dev/stack/install.sh >/dev/null
 ```
 
 These skills are for the orchestrating agent. pi workers get self-contained
