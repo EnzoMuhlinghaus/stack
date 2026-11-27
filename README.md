@@ -19,6 +19,7 @@ Codex, and T3 Code.
 | `file-pr` | "file a PR" | Files a short PR in the repo's own format, leading with the problem. |
 | `takeover` | "take over" | Finishes someone else's PR, branch, or agent thread, and keeps their credit. |
 | `babysit-pr` | "babysit" | Watches a PR through CI and review bots, and fixes the real findings. |
+| `prune-tests` | "prune tests" | Deletes or rewrites tests that guard no behavior, and the production code only they used. |
 | `modernize` | "modernize" | Rebases an old PR onto a replacement branch and decides if it should still exist. |
 | `leaving-pr-comments` | (automatic) | Formats comments that an agent posts on your behalf. |
 
@@ -80,4 +81,6 @@ Review bots: gating `my-review-bot`, advisory `coderabbit`
 ## License
 
 [MIT](LICENSE). Original work by Theo Browne in
-[t3dotgg/tstack](https://github.com/t3dotgg/tstack).
+[t3dotgg/tstack](https://github.com/t3dotgg/tstack). `prune-tests` comes from
+[caldoai/skills](https://github.com/caldoai/skills) under its own
+[MIT license](skills/prune-tests/LICENSE).
